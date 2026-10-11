@@ -31,6 +31,25 @@ Install via Extension Manager (Recommended)
 3. Search for **Shade Inactive Windows Reborn**.
 4. Click **Install**.
 
+## Tests
+
+Run the offline unit tests with Node.js 22 or newer; no packages are required:
+
+```bash
+node --test tests/shading.test.cjs
+```
+
+To save raw V8 unit-test coverage locally:
+
+```bash
+NODE_V8_COVERAGE=coverage node --test tests/shading.test.cjs
+```
+
+The tests evaluate the real `extension.js` body with GNOME imports replaced by
+controlled doubles. They check exclusion matching, focus transitions, and actor
+cleanup, not live GNOME rendering, shadow drawing, or integration/E2E behavior.
+The V8 files describe this adapted module and are not GNOME/E2E coverage.
+
 ## Acknowledgements & Credits
 
 This project is completely rewritten based on the concept of Shade Inactive Windows, originally created by [hepaajan](https://github.com/hepaajan/shade-inactive-windows).
