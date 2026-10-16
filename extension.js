@@ -255,7 +255,38 @@ export default class ShadeInactiveWindowsExtension extends Extension {
             const swidth = this._shadowWidth;
             
             const steps = Math.min(Math.max(swidth, 8), 24);
-            const stepAlpha = (this._shadowOpacity / steps) * 1.5;
+            const targetAlpha = Math.min(Math.max(this._shadowOpacity, 0), 1);
+            let stepAlpha = 0;
+
+            if (targetAlpha > 0) {
+                const weights = [];
+                for (let i = 1; i < steps; i++) {
+                    const t = i / steps;
+                    weights.push((1 - t) * (1 - t));
+                }
+                const maxW = weights[0];
+
+                if (targetAlpha >= 1) {
+                    stepAlpha = 1 / maxW;
+                } else {
+                    let low = 0;
+                    let high = 1 / maxW;
+                    for (let iter = 0; iter < 40; iter++) {
+                        const mid = (low + high) / 2;
+                        let rem = 1;
+                        for (let i = 0; i < weights.length; i++) {
+                            rem *= (1 - mid * weights[i]);
+                            if (rem <= 0)
+                                break;
+                        }
+                        if (1 - rem < targetAlpha)
+                            low = mid;
+                        else
+                            high = mid;
+                    }
+                    stepAlpha = (low + high) / 2;
+                }
+            }
             
             for (let i = 0; i < steps; i++) {
                 const t = i / steps;
@@ -263,7 +294,7 @@ export default class ShadeInactiveWindowsExtension extends Extension {
                 const extent = swidth * t;
 
                 const factor = (1 - t) * (1 - t);
-                const currentAlpha = stepAlpha * factor;
+                const currentAlpha = Math.min(1, stepAlpha * factor);
 
                 cr.setSourceRGBA(
                     scolor.red / 255, 
